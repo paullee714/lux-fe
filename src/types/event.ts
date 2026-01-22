@@ -5,23 +5,33 @@
 import type { BaseEntity, PaginationParams } from "./common";
 import type { UserSummary } from "./user";
 
-/** Event entity */
+/** Event entity - matches backend response (snake_case) */
 export interface Event extends BaseEntity {
+  organizer_id: string;
   title: string;
-  description: string;
-  coverImage?: string;
-  startDate: string;
-  endDate: string;
+  description?: string;
+  slug: string;
+  location?: string;
+  venue_name?: string;
+  address_line1?: string;
+  address_line2?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  postal_code?: string;
+  latitude?: number;
+  longitude?: number;
   timezone: string;
-  location: EventLocation;
+  starts_at: string;
+  ends_at: string;
+  capacity?: number;
+  cover_image_url?: string;
   status: EventStatus;
   visibility: EventVisibility;
-  maxAttendees?: number;
-  currentAttendees: number;
-  host: UserSummary;
-  categories: string[];
+  category?: string;
   tags: string[];
-  settings: EventSettings;
+  published_at?: string;
+  cancelled_at?: string;
 }
 
 /** Event status */
@@ -33,7 +43,7 @@ export type EventStatus =
   | "cancelled";
 
 /** Event visibility */
-export type EventVisibility = "public" | "private" | "unlisted";
+export type EventVisibility = "public" | "private" | "invite_only";
 
 /** Event location */
 export interface EventLocation {
@@ -59,25 +69,52 @@ export interface EventSettings {
   reminderTiming: number[]; // hours before event
 }
 
-/** Create event request */
+/** Create event request - matches backend API */
 export interface CreateEventRequest {
   title: string;
-  description: string;
-  coverImage?: string;
-  startDate: string;
-  endDate: string;
-  timezone: string;
-  location: EventLocation;
-  visibility: EventVisibility;
-  maxAttendees?: number;
-  categories?: string[];
+  description?: string;
+  location?: string;
+  venue_name?: string;
+  address_line1?: string;
+  address_line2?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  postal_code?: string;
+  latitude?: number;
+  longitude?: number;
+  timezone?: string;
+  starts_at: string;  // ISO datetime
+  ends_at: string;    // ISO datetime
+  capacity?: number;
+  cover_image_url?: string;
+  visibility?: EventVisibility;
+  category?: string;
   tags?: string[];
-  settings?: Partial<EventSettings>;
 }
 
-/** Update event request */
-export interface UpdateEventRequest extends Partial<CreateEventRequest> {
-  status?: EventStatus;
+/** Update event request - matches backend API */
+export interface UpdateEventRequest {
+  title?: string;
+  description?: string;
+  location?: string;
+  venue_name?: string;
+  address_line1?: string;
+  address_line2?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  postal_code?: string;
+  latitude?: number;
+  longitude?: number;
+  timezone?: string;
+  starts_at?: string;
+  ends_at?: string;
+  capacity?: number;
+  cover_image_url?: string;
+  visibility?: EventVisibility;
+  category?: string;
+  tags?: string[];
 }
 
 /** Event filters */
@@ -92,33 +129,44 @@ export interface EventFilters extends PaginationParams {
   hostId?: string;
 }
 
-/** Event summary (for lists) */
+/** Event summary (for lists) - matches backend response */
 export interface EventSummary {
   id: string;
+  organizer_id: string;
   title: string;
-  coverImage?: string;
-  startDate: string;
-  endDate: string;
-  location: Pick<EventLocation, "type" | "venue" | "city">;
+  description?: string;
+  slug: string;
+  location?: string;
+  venue_name?: string;
+  city?: string;
+  country?: string;
+  timezone: string;
+  starts_at: string;
+  ends_at: string;
+  capacity?: number;
+  cover_image_url?: string;
   status: EventStatus;
-  currentAttendees: number;
-  maxAttendees?: number;
-  host: UserSummary;
+  visibility: EventVisibility;
+  category?: string;
+  tags: string[];
+  created_at: string;
+  updated_at: string;
+  published_at?: string;
 }
 
-/** Invitation entity */
+/** Invitation entity - matches backend response */
 export interface Invitation extends BaseEntity {
-  eventId: string;
-  event: EventSummary;
-  senderId: string;
-  sender: UserSummary;
-  recipientId?: string;
-  recipientEmail: string;
-  recipient?: UserSummary;
+  event_id: string;
+  inviter_id: string;
+  invitee_id?: string;
+  invitee_email?: string;
+  invitee_name?: string;
   status: InvitationStatus;
   message?: string;
-  respondedAt?: string;
-  expiresAt?: string;
+  responded_at?: string;
+  expires_at?: string;
+  // Optional enriched data (may not always be present)
+  event?: EventSummary;
 }
 
 /** Invitation status */

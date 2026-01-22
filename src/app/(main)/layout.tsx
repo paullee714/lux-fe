@@ -8,15 +8,15 @@ export default function MainLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex h-screen flex-col overflow-hidden">
       <Header />
-      <div className="flex flex-1">
+      <div className="flex flex-1 min-h-0">
         <Sidebar />
-        <main className="flex-1 overflow-auto">
-          <div className="container py-6">{children}</div>
+        <main className="flex-1 overflow-y-auto">
+          <div className="px-6 lg:px-8 py-6">{children}</div>
+          <Footer />
         </main>
       </div>
-      <Footer />
       <MobileNav />
     </div>
   );

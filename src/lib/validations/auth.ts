@@ -35,22 +35,17 @@ export const registerSchema = z
     email: emailSchema,
     password: passwordSchema,
     confirmPassword: z.string().min(1, "Please confirm your password"),
-    name: z
+    displayName: z
       .string()
       .min(1, "Name is required")
       .min(2, "Name must be at least 2 characters")
-      .max(50, "Name must be less than 50 characters"),
-    phone: z
-      .string()
-      .regex(/^[0-9-+\s]*$/, "Please enter a valid phone number")
-      .optional()
-      .or(z.literal("")),
+      .max(100, "Name must be less than 100 characters"),
+    language: z.enum(["ko", "en"]).optional(),
     agreeToTerms: z
       .boolean()
       .refine((val) => val === true, {
         message: "You must agree to the terms and conditions",
       }),
-    agreeToMarketing: z.boolean().optional(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match",
@@ -99,24 +94,21 @@ export type ChangePasswordFormValues = z.infer<typeof changePasswordSchema>;
 
 /** Profile update schema */
 export const updateProfileSchema = z.object({
-  name: z
+  display_name: z
     .string()
     .min(2, "Name must be at least 2 characters")
-    .max(50, "Name must be less than 50 characters")
+    .max(100, "Name must be less than 100 characters")
     .optional(),
   phone: z
     .string()
     .regex(/^[0-9-+\s]*$/, "Please enter a valid phone number")
     .optional()
     .or(z.literal("")),
-  preferences: z
-    .object({
-      language: z.enum(["ko", "en"]).optional(),
-      theme: z.enum(["light", "dark", "system"]).optional(),
-      emailNotifications: z.boolean().optional(),
-      pushNotifications: z.boolean().optional(),
-    })
+  bio: z
+    .string()
+    .max(500, "Bio must be less than 500 characters")
     .optional(),
+  language: z.enum(["ko", "en"]).optional(),
 });
 
 export type UpdateProfileFormValues = z.infer<typeof updateProfileSchema>;

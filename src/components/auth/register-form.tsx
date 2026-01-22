@@ -30,7 +30,6 @@ import { cn } from "@/lib/utils";
 export function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [language, setLanguage] = useState<"ko" | "en">("ko");
   const { register: registerUser, isLoading, error, clearError } = useAuth({
     redirectIfAuthenticated: "/events",
   });
@@ -38,6 +37,8 @@ export function RegisterForm() {
   const {
     register,
     handleSubmit,
+    setValue,
+    watch,
     formState: { errors },
   } = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
@@ -45,12 +46,13 @@ export function RegisterForm() {
       email: "",
       password: "",
       confirmPassword: "",
-      name: "",
-      phone: "",
+      displayName: "",
+      language: "ko",
       agreeToTerms: false as boolean,
-      agreeToMarketing: false,
     },
   });
+
+  const selectedLanguage = watch("language");
 
   const onSubmit = async (data: RegisterFormValues) => {
     clearError();
@@ -58,10 +60,8 @@ export function RegisterForm() {
       await registerUser({
         email: data.email,
         password: data.password,
-        name: data.name,
-        phone: data.phone || undefined,
-        agreeToTerms: data.agreeToTerms,
-        agreeToMarketing: data.agreeToMarketing,
+        display_name: data.displayName,
+        language: data.language,
       });
     } catch {
       // Error is handled by the store
@@ -69,14 +69,24 @@ export function RegisterForm() {
   };
 
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader className="space-y-1 text-center">
-        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary">
-          <span className="text-2xl font-bold text-primary-foreground">L</span>
+    <Card className="w-full max-w-md overflow-hidden border-0 bg-card/80 shadow-elevated-lg backdrop-blur-xl">
+      {/* Gradient accent line */}
+      <div className="h-1 w-full bg-gradient-to-r from-amber-400 via-orange-500 to-amber-600" />
+
+      <CardHeader className="space-y-1 pb-6 pt-8 text-center">
+        {/* Logo with glow effect */}
+        <div className="relative mx-auto mb-6">
+          <div className="absolute inset-0 animate-pulse rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 opacity-40 blur-xl" />
+          <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-400 via-amber-500 to-orange-500 shadow-lg shadow-amber-500/30">
+            <span className="text-2xl font-bold text-white">L</span>
+          </div>
         </div>
-        <CardTitle className="text-2xl font-bold">Create an account</CardTitle>
-        <CardDescription>
-          Enter your information to get started
+
+        <CardTitle className="text-2xl font-bold tracking-tight">
+          Create an account
+        </CardTitle>
+        <CardDescription className="text-muted-foreground">
+          Join Lux and start discovering amazing events
         </CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit(onSubmit)}>
@@ -88,18 +98,18 @@ export function RegisterForm() {
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="name">Name</Label>
+            <Label htmlFor="displayName">Name</Label>
             <Input
-              id="name"
+              id="displayName"
               type="text"
               placeholder="Your name"
               autoComplete="name"
               disabled={isLoading}
-              {...register("name")}
-              className={cn(errors.name && "border-destructive")}
+              {...register("displayName")}
+              className={cn(errors.displayName && "border-destructive")}
             />
-            {errors.name && (
-              <p className="text-sm text-destructive">{errors.name.message}</p>
+            {errors.displayName && (
+              <p className="text-sm text-destructive">{errors.displayName.message}</p>
             )}
           </div>
 
@@ -120,26 +130,10 @@ export function RegisterForm() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="phone">Phone (optional)</Label>
-            <Input
-              id="phone"
-              type="tel"
-              placeholder="010-1234-5678"
-              autoComplete="tel"
-              disabled={isLoading}
-              {...register("phone")}
-              className={cn(errors.phone && "border-destructive")}
-            />
-            {errors.phone && (
-              <p className="text-sm text-destructive">{errors.phone.message}</p>
-            )}
-          </div>
-
-          <div className="space-y-2">
             <Label htmlFor="language">Preferred Language</Label>
             <Select
-              value={language}
-              onValueChange={(value: "ko" | "en") => setLanguage(value)}
+              value={selectedLanguage}
+              onValueChange={(value: "ko" | "en") => setValue("language", value)}
               disabled={isLoading}
             >
               <SelectTrigger id="language" className="w-full">
@@ -256,31 +250,49 @@ export function RegisterForm() {
                 {errors.agreeToTerms.message}
               </p>
             )}
-
-            <div className="flex items-start space-x-2">
-              <input
-                type="checkbox"
-                id="agreeToMarketing"
-                {...register("agreeToMarketing")}
-                className="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                disabled={isLoading}
-              />
-              <Label htmlFor="agreeToMarketing" className="text-sm font-normal">
-                I want to receive marketing emails and updates (optional)
-              </Label>
-            </div>
           </div>
         </CardContent>
 
-        <CardFooter className="flex flex-col gap-4">
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Create account
+        <CardFooter className="flex flex-col gap-6 px-8 pb-8 pt-2">
+          <Button
+            type="submit"
+            disabled={isLoading}
+            className={cn(
+              "relative h-12 w-full overflow-hidden rounded-xl text-base font-semibold transition-all duration-300",
+              "bg-gradient-to-r from-amber-500 via-amber-500 to-orange-500",
+              "hover:from-amber-600 hover:via-amber-500 hover:to-orange-600",
+              "shadow-lg shadow-amber-500/25 hover:shadow-xl hover:shadow-amber-500/30",
+              "disabled:opacity-70 disabled:shadow-none"
+            )}
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                Creating account...
+              </>
+            ) : (
+              "Create account"
+            )}
           </Button>
+
+          {/* Divider */}
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-border/50" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-card/80 px-3 text-muted-foreground">
+                Already have an account?
+              </span>
+            </div>
+          </div>
+
           <p className="text-center text-sm text-muted-foreground">
-            Already have an account?{" "}
-            <Link href="/login" className="text-primary hover:underline">
-              Sign in
+            <Link
+              href="/login"
+              className="font-semibold text-primary transition-colors hover:text-primary/80"
+            >
+              Sign in instead
             </Link>
           </p>
         </CardFooter>

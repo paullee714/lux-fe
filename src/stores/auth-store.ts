@@ -54,8 +54,8 @@ export const useAuthStore = create<AuthStore>()(
           if (response.success && response.data) {
             set({
               user: response.data.user,
-              accessToken: response.data.accessToken,
-              refreshToken: response.data.refreshToken,
+              accessToken: response.data.tokens.access_token,
+              refreshToken: response.data.tokens.refresh_token,
               isAuthenticated: true,
               isLoading: false,
             });
@@ -73,8 +73,15 @@ export const useAuthStore = create<AuthStore>()(
         set({ isLoading: true, error: null });
         try {
           const response = await apiRegister(data);
-          if (response.success) {
-            set({ isLoading: false });
+          if (response.success && response.data) {
+            // Registration returns tokens - auto-login the user
+            set({
+              user: response.data.user,
+              accessToken: response.data.tokens.access_token,
+              refreshToken: response.data.tokens.refresh_token,
+              isAuthenticated: true,
+              isLoading: false,
+            });
           }
         } catch (error) {
           set({

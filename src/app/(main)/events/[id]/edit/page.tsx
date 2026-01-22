@@ -224,32 +224,36 @@ export default function EditEventPage() {
   // Populate form when event data loads
   useEffect(() => {
     if (event) {
+      // Determine location type from data
+      const isOnline = event.location?.toLowerCase().includes("online") || !event.venue_name;
+      const locType = isOnline ? "online" : "offline";
+
       reset({
         title: event.title,
-        description: event.description,
-        coverImage: event.coverImage || "",
-        startDate: formatDateForInput(event.startDate),
-        startTime: formatTimeForInput(event.startDate),
-        endDate: formatDateForInput(event.endDate),
-        endTime: formatTimeForInput(event.endDate),
+        description: event.description || "",
+        coverImage: event.cover_image_url || "",
+        startDate: formatDateForInput(event.starts_at),
+        startTime: formatTimeForInput(event.starts_at),
+        endDate: formatDateForInput(event.ends_at),
+        endTime: formatTimeForInput(event.ends_at),
         timezone: event.timezone,
-        locationType: event.location.type,
-        venue: event.location.venue || "",
-        address: event.location.address || "",
-        city: event.location.city || "",
-        country: event.location.country || "",
-        onlineUrl: event.location.onlineUrl || "",
-        onlinePlatform: event.location.onlinePlatform || "",
-        visibility: event.visibility,
-        maxAttendees: event.maxAttendees || null,
-        category: event.categories?.[0] || "",
+        locationType: locType,
+        venue: event.venue_name || "",
+        address: event.address_line1 || "",
+        city: event.city || "",
+        country: event.country || "",
+        onlineUrl: "",
+        onlinePlatform: "",
+        visibility: event.visibility === "invite_only" ? "private" : event.visibility,
+        maxAttendees: event.capacity || null,
+        category: event.category || "",
         tags: event.tags || [],
-        allowComments: event.settings?.allowComments ?? true,
-        allowGuests: event.settings?.allowGuests ?? false,
-        requireApproval: event.settings?.requireApproval ?? false,
-        sendReminders: event.settings?.sendReminders ?? true,
+        allowComments: true,
+        allowGuests: false,
+        requireApproval: false,
+        sendReminders: true,
       });
-      setCoverImagePreview(event.coverImage || null);
+      setCoverImagePreview(event.cover_image_url || null);
     }
   }, [event, reset]);
 
@@ -282,33 +286,29 @@ export default function EditEventPage() {
 
   // Handle form submission
   const onSubmit = async (data: EditEventFormValues) => {
+    // Map visibility value (frontend uses "unlisted" but backend uses "invite_only")
+    let visibility: EventVisibility = data.visibility as EventVisibility;
+    if (data.visibility === "unlisted") {
+      visibility = "invite_only";
+    }
+
+    // Build flat request matching backend API
     const eventData: UpdateEventRequest = {
       title: data.title,
-      description: data.description,
-      coverImage: data.coverImage || undefined,
-      startDate: new Date(`${data.startDate}T${data.startTime}`).toISOString(),
-      endDate: new Date(`${data.endDate}T${data.endTime}`).toISOString(),
+      description: data.description || undefined,
+      cover_image_url: data.coverImage || undefined,
+      starts_at: new Date(`${data.startDate}T${data.startTime}`).toISOString(),
+      ends_at: new Date(`${data.endDate}T${data.endTime}`).toISOString(),
       timezone: data.timezone,
-      location: {
-        type: data.locationType,
-        venue: data.venue || undefined,
-        address: data.address || undefined,
-        city: data.city || undefined,
-        country: data.country || undefined,
-        onlineUrl: data.onlineUrl || undefined,
-        onlinePlatform: data.onlinePlatform || undefined,
-      },
-      visibility: data.visibility as EventVisibility,
-      maxAttendees: data.maxAttendees || undefined,
-      categories: data.category ? [data.category] : undefined,
+      venue_name: data.venue || undefined,
+      address_line1: data.address || undefined,
+      city: data.city || undefined,
+      country: data.country || undefined,
+      location: data.locationType === "online" ? data.onlineUrl || "Online" : undefined,
+      visibility: visibility,
+      capacity: data.maxAttendees || undefined,
+      category: data.category || undefined,
       tags: data.tags && data.tags.length > 0 ? data.tags : undefined,
-      settings: {
-        allowComments: data.allowComments,
-        allowGuests: data.allowGuests,
-        requireApproval: data.requireApproval,
-        sendReminders: data.sendReminders,
-        reminderTiming: [24, 1],
-      },
     };
 
     updateMutation.mutate({ eventData, publish: shouldPublish });
@@ -882,7 +882,7 @@ export default function EditEventPage() {
                 />
               </div>
               <p className="text-xs text-muted-foreground">
-                Leave empty for unlimited capacity. Current: {event.currentAttendees} registered
+                Leave empty for unlimited capacity
               </p>
             </div>
           </CardContent>

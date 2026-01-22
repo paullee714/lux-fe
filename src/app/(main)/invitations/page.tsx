@@ -20,7 +20,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Dialog,
   DialogContent,
@@ -39,7 +38,7 @@ import {
   respondToInvitation,
   cancelInvitation
 } from "@/lib/api/invitations";
-import { formatDate, formatRelativeTime, getInitials } from "@/lib/utils/format";
+import { formatDate, formatRelativeTime } from "@/lib/utils/format";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import type { Invitation, InvitationStatus } from "@/types/event";
@@ -108,41 +107,28 @@ function InvitationCard({
     setResponseMessage("");
   };
 
+  // Display name for the invitation
+  const displayName = type === "received"
+    ? "Event Invitation"
+    : invitation.invitee_name || invitation.invitee_email || "Invitee";
+
   return (
     <>
       <Card className="transition-shadow hover:shadow-md">
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
-              <Avatar>
-                <AvatarImage
-                  src={
-                    type === "received"
-                      ? invitation.sender.profileImage
-                      : invitation.recipient?.profileImage
-                  }
-                  alt={
-                    type === "received"
-                      ? invitation.sender.name
-                      : invitation.recipient?.name || invitation.recipientEmail
-                  }
-                />
-                <AvatarFallback>
-                  {getInitials(
-                    type === "received"
-                      ? invitation.sender.name
-                      : invitation.recipient?.name || invitation.recipientEmail
-                  )}
-                </AvatarFallback>
-              </Avatar>
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+                <Mail className="h-5 w-5 text-primary" />
+              </div>
               <div>
                 <CardTitle className="text-base">
                   {type === "received"
-                    ? `From ${invitation.sender.name}`
-                    : `To ${invitation.recipient?.name || invitation.recipientEmail}`}
+                    ? "Event Invitation"
+                    : `To: ${displayName}`}
                 </CardTitle>
                 <CardDescription className="text-xs">
-                  {formatRelativeTime(invitation.createdAt)}
+                  {formatRelativeTime(invitation.created_at)}
                 </CardDescription>
               </div>
             </div>
@@ -154,10 +140,16 @@ function InvitationCard({
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            <h4 className="font-medium">{invitation.event.title}</h4>
-            <p className="text-sm text-muted-foreground">
-              {formatDate(invitation.event.startDate)}
-            </p>
+            {invitation.event ? (
+              <>
+                <h4 className="font-medium">{invitation.event.title}</h4>
+                <p className="text-sm text-muted-foreground">
+                  {formatDate(new Date(invitation.event.starts_at))}
+                </p>
+              </>
+            ) : (
+              <p className="text-sm text-muted-foreground">Event ID: {invitation.event_id}</p>
+            )}
             {invitation.message && (
               <p className="text-sm italic text-muted-foreground border-l-2 border-primary/50 pl-3">
                 &quot;{invitation.message}&quot;
@@ -221,8 +213,8 @@ function InvitationCard({
             </DialogTitle>
             <DialogDescription>
               {responseAction === "accept"
-                ? `You are about to accept the invitation to "${invitation.event.title}".`
-                : `You are about to decline the invitation to "${invitation.event.title}".`}
+                ? `You are about to accept this invitation.`
+                : `You are about to decline this invitation.`}
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">

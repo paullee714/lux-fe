@@ -34,7 +34,7 @@ export default function HomePage() {
     <div className="flex min-h-screen flex-col">
       {/* Hero Section */}
       <header className="border-b">
-        <div className="container flex h-16 items-center justify-between">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex h-16 items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
               <span className="text-lg font-bold text-primary-foreground">L</span>
@@ -58,7 +58,7 @@ export default function HomePage() {
           <div className="absolute inset-0 -z-10 bg-[linear-gradient(to_right,#f0f0f0_1px,transparent_1px),linear-gradient(to_bottom,#f0f0f0_1px,transparent_1px)] bg-[size:4rem_4rem] dark:bg-[linear-gradient(to_right,#1a1a1a_1px,transparent_1px),linear-gradient(to_bottom,#1a1a1a_1px,transparent_1px)]" />
           <div className="absolute inset-0 -z-10 bg-gradient-to-b from-background via-background/80 to-background" />
 
-          <div className="container text-center">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
             <div className="mx-auto max-w-3xl">
               <h1 className="text-4xl font-bold tracking-tight sm:text-6xl">
                 Create memorable events with{" "}
@@ -86,7 +86,7 @@ export default function HomePage() {
 
         {/* Features */}
         <section className="border-t bg-muted/30 py-20">
-          <div className="container">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="mx-auto max-w-2xl text-center">
               <h2 className="text-3xl font-bold tracking-tight">
                 Everything you need to host amazing events
@@ -118,7 +118,7 @@ export default function HomePage() {
 
         {/* CTA */}
         <section className="py-20">
-          <div className="container">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="mx-auto max-w-2xl rounded-2xl bg-gradient-to-br from-primary to-amber-600 p-8 text-center text-primary-foreground sm:p-12">
               <h2 className="text-3xl font-bold">Ready to get started?</h2>
               <p className="mt-4 text-primary-foreground/80">
@@ -143,7 +143,7 @@ export default function HomePage() {
 
       {/* Footer */}
       <footer className="border-t py-8">
-        <div className="container flex flex-col items-center justify-between gap-4 sm:flex-row">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-col items-center justify-between gap-4 sm:flex-row">
           <div className="flex items-center gap-2">
             <div className="flex h-6 w-6 items-center justify-center rounded bg-primary">
               <span className="text-sm font-bold text-primary-foreground">L</span>

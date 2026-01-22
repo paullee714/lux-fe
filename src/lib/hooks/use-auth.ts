@@ -68,9 +68,9 @@ export function useAuth(options: UseAuthOptions = {}) {
   const handleRegister = useCallback(
     async (data: RegisterRequest) => {
       await register(data);
-      // Redirect to verification pending page with email
-      const email = encodeURIComponent(data.email);
-      router.push(`/verification-pending?email=${email}`);
+      // Registration returns tokens, so user is auto-logged in
+      // Redirect to events page
+      router.push("/events");
     },
     [register, router]
   );

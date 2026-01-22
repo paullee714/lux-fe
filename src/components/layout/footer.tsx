@@ -11,8 +11,8 @@ export function Footer() {
   ];
 
   return (
-    <footer className="border-t bg-background">
-      <div className="container flex flex-col items-center justify-between gap-4 py-6 md:flex-row">
+    <footer className="border-t bg-background mt-auto">
+      <div className="px-6 lg:px-8 flex flex-col items-center justify-between gap-4 py-6 md:flex-row">
         <div className="flex items-center gap-2">
           <div className="flex h-6 w-6 items-center justify-center rounded bg-primary">
             <span className="text-sm font-bold text-primary-foreground">L</span>

@@ -100,7 +100,7 @@ const createEventFormSchema = z
     country: z.string().optional(),
     onlineUrl: z.string().url("Please enter a valid URL").optional().or(z.literal("")),
     onlinePlatform: z.string().optional(),
-    visibility: z.enum(["public", "private", "unlisted"]),
+    visibility: z.enum(["public", "private", "invite_only"]),
     maxAttendees: z.number().int().positive().optional().nullable(),
     category: z.string().optional(),
     tags: z.array(z.string()).optional(),
@@ -226,33 +226,32 @@ export default function CreateEventPage() {
 
   // Handle form submission
   const onSubmit = async (data: CreateEventFormValues) => {
+    // Build location string based on type
+    let locationStr: string | undefined;
+    if (data.locationType === "online") {
+      locationStr = data.onlinePlatform || "Online";
+    } else if (data.locationType === "hybrid") {
+      locationStr = `${data.venue || ""} / Online`.trim();
+    } else {
+      locationStr = data.venue || undefined;
+    }
+
     const eventData: CreateEventRequest = {
       title: data.title,
-      description: data.description,
-      coverImage: data.coverImage || undefined,
-      startDate: new Date(`${data.startDate}T${data.startTime}`).toISOString(),
-      endDate: new Date(`${data.endDate}T${data.endTime}`).toISOString(),
+      description: data.description || undefined,
+      location: locationStr,
+      venue_name: data.venue || undefined,
+      address_line1: data.address || undefined,
+      city: data.city || undefined,
+      country: data.country || undefined,
       timezone: data.timezone,
-      location: {
-        type: data.locationType,
-        venue: data.venue || undefined,
-        address: data.address || undefined,
-        city: data.city || undefined,
-        country: data.country || undefined,
-        onlineUrl: data.onlineUrl || undefined,
-        onlinePlatform: data.onlinePlatform || undefined,
-      },
+      starts_at: new Date(`${data.startDate}T${data.startTime}`).toISOString(),
+      ends_at: new Date(`${data.endDate}T${data.endTime}`).toISOString(),
+      capacity: data.maxAttendees || undefined,
+      cover_image_url: data.coverImage || undefined,
       visibility: data.visibility as EventVisibility,
-      maxAttendees: data.maxAttendees || undefined,
-      categories: data.category ? [data.category] : undefined,
+      category: data.category || undefined,
       tags: data.tags && data.tags.length > 0 ? data.tags : undefined,
-      settings: {
-        allowComments: data.allowComments,
-        allowGuests: data.allowGuests,
-        requireApproval: data.requireApproval,
-        sendReminders: data.sendReminders,
-        reminderTiming: [24, 1],
-      },
     };
 
     createMutation.mutate({ eventData, publish: shouldPublish });
@@ -750,20 +749,20 @@ export default function CreateEventPage() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => field.onChange("unlisted")}
+                      onClick={() => field.onChange("invite_only")}
                       className={cn(
                         "flex flex-col items-start gap-1 rounded-lg border-2 p-4 text-left transition-colors",
-                        field.value === "unlisted"
+                        field.value === "invite_only"
                           ? "border-primary bg-primary/5"
                           : "border-muted hover:border-primary/50"
                       )}
                     >
                       <div className="flex items-center gap-2">
                         <Eye className="h-4 w-4" />
-                        <span className="font-medium">Unlisted</span>
+                        <span className="font-medium">Invite Only</span>
                       </div>
                       <span className="text-xs text-muted-foreground">
-                        Only people with link can join
+                        Only invited people can join
                       </span>
                     </button>
                     <button

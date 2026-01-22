@@ -27,7 +27,6 @@ import {
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Card,
   CardContent,
@@ -35,6 +34,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import type { Event } from "@/types/event";
 import {
   Dialog,
   DialogContent,
@@ -60,7 +60,7 @@ import {
   unregisterFromEvent,
 } from "@/lib/api/events";
 import { useAuthStore } from "@/stores";
-import { formatDate, formatTime, getInitials } from "@/lib/utils/format";
+import { formatDate, formatTime } from "@/lib/utils/format";
 import { cn } from "@/lib/utils";
 
 const statusColors: Record<string, string> = {
@@ -128,7 +128,7 @@ export default function EventDetailPage() {
   });
 
   const event = eventData?.data;
-  const isHost = event?.host.id === user?.id;
+  const isHost = event?.organizer_id === user?.id;
   const isRegistrationMutating = registerMutation.isPending || unregisterMutation.isPending;
 
   // Handle share functionality
@@ -173,13 +173,13 @@ export default function EventDetailPage() {
     );
   }
 
-  const startDate = new Date(event.startDate);
-  const endDate = new Date(event.endDate);
-  const isFull = event.maxAttendees
-    ? event.currentAttendees >= event.maxAttendees
-    : false;
+  const startDate = new Date(event.starts_at);
+  const endDate = new Date(event.ends_at);
   const isPastEvent = endDate < new Date();
   const isCancelled = event.status === "cancelled";
+
+  // Determine if event is online based on location field
+  const isOnline = event.location?.toLowerCase().includes("online") || !event.venue_name;
 
   return (
     <div className="space-y-6">
@@ -193,10 +193,10 @@ export default function EventDetailPage() {
 
       {/* Event Header */}
       <div className="relative overflow-hidden rounded-xl">
-        {event.coverImage ? (
+        {event.cover_image_url ? (
           <div className="relative aspect-[3/1] w-full">
             <Image
-              src={event.coverImage}
+              src={event.cover_image_url}
               alt={event.title}
               fill
               className="object-cover"
@@ -224,12 +224,12 @@ export default function EventDetailPage() {
               ) : event.visibility === "private" ? (
                 "Private"
               ) : (
-                "Unlisted"
+                "Invite Only"
               )}
             </Badge>
-            {event.categories && event.categories.length > 0 && (
+            {event.category && (
               <Badge variant="outline" className="border-white/50 text-white">
-                {event.categories[0]}
+                {event.category}
               </Badge>
             )}
           </div>
@@ -279,7 +279,7 @@ export default function EventDetailPage() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                {event.location.type === "online" ? (
+                {isOnline ? (
                   <Video className="h-5 w-5" />
                 ) : (
                   <MapPin className="h-5 w-5" />
@@ -288,7 +288,7 @@ export default function EventDetailPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {event.location.type === "online" ? (
+              {isOnline ? (
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
                     <Badge variant="secondary">
@@ -296,105 +296,37 @@ export default function EventDetailPage() {
                       Online Event
                     </Badge>
                   </div>
-                  {event.location.onlinePlatform && (
+                  {event.location && (
                     <p className="text-sm text-muted-foreground">
-                      Platform: {event.location.onlinePlatform}
+                      {event.location}
                     </p>
-                  )}
-                  {event.location.onlineUrl && isAuthenticated && !isPastEvent && (
-                    <Button variant="outline" size="sm" asChild className="mt-2">
-                      <a href={event.location.onlineUrl} target="_blank" rel="noopener noreferrer">
-                        <ExternalLink className="mr-2 h-4 w-4" />
-                        Join Online
-                      </a>
-                    </Button>
                   )}
                 </div>
               ) : (
                 <div className="space-y-1">
-                  {event.location.venue && (
-                    <p className="font-medium">{event.location.venue}</p>
+                  {event.venue_name && (
+                    <p className="font-medium">{event.venue_name}</p>
                   )}
-                  {event.location.address && (
+                  {event.address_line1 && (
                     <p className="text-sm text-muted-foreground">
-                      {event.location.address}
+                      {event.address_line1}
                     </p>
                   )}
-                  {event.location.city && (
+                  {event.city && (
                     <p className="text-sm text-muted-foreground">
-                      {event.location.city}
-                      {event.location.country && `, ${event.location.country}`}
+                      {event.city}
+                      {event.country && `, ${event.country}`}
                     </p>
                   )}
-                  {event.location.type === "hybrid" && event.location.onlineUrl && (
-                    <div className="mt-3 pt-3 border-t">
-                      <Badge variant="secondary" className="mb-2">
-                        <Video className="mr-1 h-3 w-3" />
-                        Also available online
-                      </Badge>
-                      {isAuthenticated && !isPastEvent && (
-                        <Button variant="outline" size="sm" asChild className="ml-2">
-                          <a href={event.location.onlineUrl} target="_blank" rel="noopener noreferrer">
-                            <ExternalLink className="mr-2 h-4 w-4" />
-                            Join Online
-                          </a>
-                        </Button>
-                      )}
-                    </div>
+                  {event.location && (
+                    <p className="text-sm text-muted-foreground">
+                      {event.location}
+                    </p>
                   )}
                 </div>
               )}
             </CardContent>
           </Card>
-
-          {/* Event Settings Info */}
-          {event.settings && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Event Settings</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="flex items-center gap-2 text-sm">
-                    <div className={cn(
-                      "h-2 w-2 rounded-full",
-                      event.settings.allowComments ? "bg-green-500" : "bg-gray-300"
-                    )} />
-                    <span className="text-muted-foreground">
-                      Comments {event.settings.allowComments ? "enabled" : "disabled"}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <div className={cn(
-                      "h-2 w-2 rounded-full",
-                      event.settings.allowGuests ? "bg-green-500" : "bg-gray-300"
-                    )} />
-                    <span className="text-muted-foreground">
-                      Guests {event.settings.allowGuests ? "allowed" : "not allowed"}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <div className={cn(
-                      "h-2 w-2 rounded-full",
-                      event.settings.requireApproval ? "bg-yellow-500" : "bg-green-500"
-                    )} />
-                    <span className="text-muted-foreground">
-                      {event.settings.requireApproval ? "Approval required" : "Open registration"}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <div className={cn(
-                      "h-2 w-2 rounded-full",
-                      event.settings.sendReminders ? "bg-green-500" : "bg-gray-300"
-                    )} />
-                    <span className="text-muted-foreground">
-                      Reminders {event.settings.sendReminders ? "enabled" : "disabled"}
-                    </span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
 
           {/* Posts Section */}
           <PostsSection
@@ -441,39 +373,20 @@ export default function EventDetailPage() {
             </CardContent>
           </Card>
 
-          {/* Attendees & RSVP */}
+          {/* Capacity & RSVP */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Users className="h-5 w-5" />
-                Attendees
+                Registration
               </CardTitle>
-              <CardDescription>
-                {event.currentAttendees}
-                {event.maxAttendees && ` / ${event.maxAttendees}`} registered
-              </CardDescription>
+              {event.capacity && (
+                <CardDescription>
+                  Capacity: {event.capacity} attendees
+                </CardDescription>
+              )}
             </CardHeader>
             <CardContent className="space-y-3">
-              {/* Capacity Progress */}
-              {event.maxAttendees && (
-                <div className="space-y-1">
-                  <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-                    <div
-                      className={cn(
-                        "h-full rounded-full transition-all",
-                        isFull ? "bg-destructive" : "bg-primary"
-                      )}
-                      style={{
-                        width: `${Math.min((event.currentAttendees / event.maxAttendees) * 100, 100)}%`,
-                      }}
-                    />
-                  </div>
-                  <p className="text-xs text-muted-foreground text-right">
-                    {event.maxAttendees - event.currentAttendees} spots remaining
-                  </p>
-                </div>
-              )}
-
               {/* RSVP Button */}
               {!isAuthenticated ? (
                 <Button className="w-full" asChild>
@@ -483,7 +396,7 @@ export default function EventDetailPage() {
                 <Button variant="outline" className="w-full" asChild>
                   <Link href={`/events/${event.id}/attendees`}>
                     <Users className="mr-2 h-4 w-4" />
-                    View Attendees
+                    Manage Event
                   </Link>
                 </Button>
               ) : isCancelled ? (
@@ -493,10 +406,6 @@ export default function EventDetailPage() {
               ) : isPastEvent ? (
                 <Badge variant="secondary" className="w-full justify-center py-2">
                   Registration Closed
-                </Badge>
-              ) : isFull ? (
-                <Badge variant="secondary" className="w-full justify-center py-2">
-                  Event is Full
                 </Badge>
               ) : (
                 <div className="space-y-2">
@@ -512,39 +421,33 @@ export default function EventDetailPage() {
                     )}
                     Register for Event
                   </Button>
-                  <p className="text-xs text-center text-muted-foreground">
-                    {event.settings?.requireApproval
-                      ? "Your registration will require approval"
-                      : "Free registration"}
-                  </p>
                 </div>
               )}
             </CardContent>
           </Card>
 
-          {/* Host */}
+          {/* Event Info */}
           <Card>
             <CardHeader>
-              <CardTitle>Organizer</CardTitle>
+              <CardTitle>Event Info</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-3">
-                <Avatar className="h-12 w-12">
-                  <AvatarImage
-                    src={event.host.profileImage}
-                    alt={event.host.name}
-                  />
-                  <AvatarFallback className="text-lg">
-                    {getInitials(event.host.name)}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium truncate">{event.host.name}</p>
-                  <p className="text-sm text-muted-foreground truncate">
-                    {event.host.email}
-                  </p>
+            <CardContent className="space-y-2">
+              {event.category && (
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Category</span>
+                  <Badge variant="outline">{event.category}</Badge>
                 </div>
+              )}
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Visibility</span>
+                <span className="font-medium capitalize">{event.visibility.replace("_", " ")}</span>
               </div>
+              {event.timezone && (
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Timezone</span>
+                  <span className="font-medium">{event.timezone}</span>
+                </div>
+              )}
             </CardContent>
           </Card>
 

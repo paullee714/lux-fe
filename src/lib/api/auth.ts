@@ -24,10 +24,10 @@ export async function login(
   const response = await apiClient.post<LoginResponse>("/auth/login", credentials);
 
   // Store tokens
-  if (response.success && response.data) {
+  if (response.success && response.data?.tokens) {
     tokenManager.setTokens(
-      response.data.accessToken,
-      response.data.refreshToken
+      response.data.tokens.access_token,
+      response.data.tokens.refresh_token
     );
   }
 
@@ -40,7 +40,17 @@ export async function login(
 export async function register(
   data: RegisterRequest
 ): Promise<ApiResponse<RegisterResponse>> {
-  return apiClient.post<RegisterResponse>("/auth/register", data);
+  const response = await apiClient.post<RegisterResponse>("/auth/register", data);
+
+  // Store tokens - registration also returns tokens for auto-login
+  if (response.success && response.data?.tokens) {
+    tokenManager.setTokens(
+      response.data.tokens.access_token,
+      response.data.tokens.refresh_token
+    );
+  }
+
+  return response;
 }
 
 /**

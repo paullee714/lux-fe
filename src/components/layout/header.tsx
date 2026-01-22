@@ -53,8 +53,8 @@ export function Header() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between">
+    <header className="sticky top-0 z-50 flex-shrink-0 w-full border-b border-border/40 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
+      <div className="px-4 sm:px-6 lg:px-8 flex h-16 items-center justify-between">
         {/* Logo & Mobile Menu */}
         <div className="flex items-center gap-4">
           <Button
@@ -67,11 +67,13 @@ export function Header() {
             <span className="sr-only">Toggle menu</span>
           </Button>
 
-          <Link href="/" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-              <span className="text-lg font-bold text-primary-foreground">L</span>
+          <Link href="/" className="flex items-center gap-2.5 group">
+            <div className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 via-amber-500 to-orange-500 shadow-lg shadow-amber-500/25 transition-shadow group-hover:shadow-amber-500/40">
+              <span className="text-lg font-bold text-white">L</span>
             </div>
-            <span className="hidden text-xl font-bold sm:inline-block">Lux</span>
+            <span className="hidden text-xl font-bold tracking-tight sm:inline-block">
+              Lux
+            </span>
           </Link>
         </div>
 
@@ -164,11 +166,11 @@ export function Header() {
                   >
                     <Avatar className="h-9 w-9">
                       <AvatarImage
-                        src={user?.profileImage}
-                        alt={user?.name || "User"}
+                        src={user?.avatar_url}
+                        alt={user?.display_name || "User"}
                       />
                       <AvatarFallback className="bg-primary text-primary-foreground">
-                        {user?.name ? getInitials(user.name) : "U"}
+                        {user?.display_name ? getInitials(user.display_name) : "U"}
                       </AvatarFallback>
                     </Avatar>
                   </Button>
@@ -176,7 +178,7 @@ export function Header() {
                 <DropdownMenuContent align="end" className="w-56">
                   <DropdownMenuLabel>
                     <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium">{user?.name}</p>
+                      <p className="text-sm font-medium">{user?.display_name}</p>
                       <p className="text-xs text-muted-foreground">
                         {user?.email}
                       </p>

@@ -23,11 +23,11 @@ export interface PaginatedResponse<T> {
   };
 }
 
-/** Base entity with common fields */
+/** Base entity with common fields (snake_case from backend) */
 export interface BaseEntity {
   id: string;
-  createdAt: string;
-  updatedAt: string;
+  created_at: string;
+  updated_at: string;
 }
 
 /** Status types */

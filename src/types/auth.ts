@@ -14,25 +14,33 @@ export interface LoginRequest {
 /** Login response */
 export interface LoginResponse {
   user: User;
-  accessToken: string;
-  refreshToken: string;
-  expiresIn: number;
+  tokens: {
+    access_token: string;
+    refresh_token: string;
+    token_type: string;
+    expires_in: number;
+    expires_at: string;
+  };
 }
 
 /** Register request payload */
 export interface RegisterRequest {
   email: string;
   password: string;
-  name: string;
-  phone?: string;
-  agreeToTerms: boolean;
-  agreeToMarketing?: boolean;
+  display_name: string;
+  language?: "ko" | "en";
 }
 
-/** Register response */
+/** Register response - same as login, returns user and tokens */
 export interface RegisterResponse {
   user: User;
-  message: string;
+  tokens: {
+    access_token: string;
+    refresh_token: string;
+    token_type: string;
+    expires_in: number;
+    expires_at: string;
+  };
 }
 
 /** Password reset request */
@@ -50,32 +58,27 @@ export interface ResetPasswordRequest {
 /** User entity */
 export interface User extends BaseEntity {
   email: string;
-  name: string;
+  display_name: string;
+  avatar_url?: string;
+  bio?: string;
   phone?: string;
-  profileImage?: string;
+  language: string;
   role: UserRole;
-  isVerified: boolean;
-  lastLoginAt?: string;
-  preferences: UserPreferences;
+  status: string;
+  email_verified: boolean;
+  last_login_at?: string;
 }
 
 /** User roles */
 export type UserRole = "user" | "admin" | "moderator";
 
-/** User preferences */
-export interface UserPreferences {
-  language: "ko" | "en";
-  theme: "light" | "dark" | "system";
-  emailNotifications: boolean;
-  pushNotifications: boolean;
-}
-
 /** Update profile request */
 export interface UpdateProfileRequest {
-  name?: string;
+  display_name?: string;
   phone?: string;
-  profileImage?: string;
-  preferences?: Partial<UserPreferences>;
+  avatar_url?: string;
+  bio?: string;
+  language?: "ko" | "en";
 }
 
 /** Auth state for stores */
